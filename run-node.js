@@ -32,9 +32,8 @@ async function run() {
     redis.on('exit', (code, signal) => console.error(`Redis exited with code: ${code} and signal: ${signal}`))
 
     console.log('Starting XRP settlement engine')
-    const settlementEngine = spawn('node',
+    const settlementEngine = spawn('xrp-settlement-engine',
         [
-            './settlement-engines/xrp/build/cli.js',
             `--redis=${REDIS_UNIX_SOCKET}`,
             `--address=${xrpAddress}`,
             `--secret=${xrpSecret}`
@@ -49,7 +48,7 @@ async function run() {
     settlementEngine.on('exit', (code, signal) => console.error(`Settlement engine exited with code: ${code} and signal: ${signal}`))
 
     console.log('Creating admin account')
-    const createAccount = spawn('./target/debug/interledger', [
+    const createAccount = spawn('interledger', [
         'node',
         'accounts',
         'add',
@@ -69,7 +68,7 @@ async function run() {
     createAccount.on('error', (err) => console.error('Error creating account:', err))
 
     console.log('Launching Interledger node')
-    const node = spawn('./target/debug/interledger', [
+    const node = spawn('interledger', [
         'node',
         `--redis_uri=unix:${REDIS_UNIX_SOCKET}`,
     ], {
