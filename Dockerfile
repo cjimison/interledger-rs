@@ -12,13 +12,13 @@ ENV PLATFORM alpine
 ENV ARCH x64
 ENV NODE 10.15.3
 
-RUN nexe --target ${PLATFORM}-${ARCH}-${NODE} ./build/cli.js --output /usr/local/bin/xrp-settlement-engine
-
-# Build the run script
-COPY ./run-node.js /usr/src/run-node.js
-WORKDIR /usr/src
-RUN nexe --target ${PLATFORM}-${ARCH}-${NODE} ./run-node.js --output /usr/local/bin/run-interledger-node
-
+RUN nexe \
+    --target ${PLATFORM}-${ARCH}-${NODE} \
+    ./build/cli.js \
+    --output \
+    /usr/local/bin/xrp-settlement-engine \
+    --resource \
+    "./scripts/*.lua"
 
 # Build Interledger node into standalone binary
 FROM clux/muslrust as rust
@@ -50,9 +50,10 @@ RUN apk --no-cache add \
 
 # Copy in Node.js bundles
 COPY --from=node /usr/local/bin/xrp-settlement-engine /usr/local/bin/xrp-settlement-engine
-COPY --from=node /usr/local/bin/run-interledger-node /usr/local/bin/
+
+COPY ./run-interledger-node.sh /usr/local/bin/run-interledger-node
 
 # Copy Interledger binary
 COPY --from=rust /usr/src/target/x86_64-unknown-linux-musl/debug/interledger /usr/local/bin/interledger
 
-CMD ["run-interledger-node"]
+CMD ["sh", "run-interledger-node"]
