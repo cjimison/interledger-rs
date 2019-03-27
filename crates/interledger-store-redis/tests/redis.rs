@@ -59,7 +59,7 @@ pub struct RedisServer {
 }
 
 fn get_open_port() -> u16 {
-    for i in 0..1000 {
+    for _i in 0..1000 {
         let listener = net2::TcpBuilder::new_v4().unwrap();
         listener.reuse_address(true).unwrap();
         if let Ok(listener) = listener.bind("127.0.0.1:0") {

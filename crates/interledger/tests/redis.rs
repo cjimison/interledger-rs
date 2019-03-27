@@ -20,8 +20,16 @@ pub struct RedisServer {
     port: u16,
 }
 
-fn get_open_port() -> u16 {
-    for i in 0..1000 {
+fn get_open_port(try_port: Option<u16>) -> u16 {
+    if let Some(port) = try_port {
+        let listener = net2::TcpBuilder::new_v4().unwrap();
+        listener.reuse_address(true).unwrap();
+        if let Ok(listener) = listener.bind(&format!("127.0.0.1:{}", port)) {
+            return listener.listen(1).unwrap().local_addr().unwrap().port();
+        }
+    }
+
+    for _i in 0..1000 {
         let listener = net2::TcpBuilder::new_v4().unwrap();
         listener.reuse_address(true).unwrap();
         if let Ok(listener) = listener.bind("127.0.0.1:0") {
@@ -40,7 +48,7 @@ impl RedisServer {
 
         // this is technically a race but we can't do better with
         // the tools that redis gives us :(
-        let port = get_open_port();
+        let port = get_open_port(Some(6379));
         cmd.arg("--loglevel").arg("verbose");
         cmd.arg("--port")
             .arg(port.to_string())
@@ -111,8 +119,8 @@ fn btp_end_to_end() {
     // let redis_port = 6379;
     let redis_port = redis_server.port;
     let redis_uri = format!("redis://127.0.0.1:{}", redis_port);
-    let btp_port = get_open_port();
-    let http_port = get_open_port();
+    let btp_port = get_open_port(Some(7768));
+    let http_port = get_open_port(Some(7770));
     let run = delay(200).and_then(move |_| {
         let redis_uri_clone = redis_uri.clone();
         let create_accounts = delay(50).and_then(move |_| {
@@ -171,7 +179,7 @@ fn btp_end_to_end() {
             Ok(())
         };
 
-        let spsp_server_port = get_open_port();
+        let spsp_server_port = get_open_port(Some(3000));
         let spawn_spsp_server = move |_| {
             let spsp_server = cli::run_spsp_server_btp(
                 &format!("btp+ws://:token-one@localhost:{}", btp_port),
