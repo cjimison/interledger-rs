@@ -27,7 +27,7 @@ jobs:
           command: RUSTFLAGS="-C link-dead-code" cargo build --tests --all-features
       - run:
           name: Test
-          command: cargo test --all --all-features
+          command: RUST_LOG=interledger/.* cargo test --all --all-features
       - run:
           name: Check Formatting
           command: cargo fmt --all -- --check
