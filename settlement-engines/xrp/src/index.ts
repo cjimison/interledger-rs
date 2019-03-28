@@ -11,6 +11,7 @@ const readFileAsync = promisify(readFile)
 // TODO should the settlement engine go through and make sure all of the xrp_addresses are stored in this hash map?
 const DEFAULT_POLL_INTERVAL = 60000
 const KEY_ARGS = 0
+const XRP_SCALE = 6
 
 export interface XrpSettlementEngineConfig {
   address: string,
@@ -75,20 +76,20 @@ export class XrpSettlementEngine {
 
     const loadScript = promisify(this.redisClient.script.bind(this.redisClient, 'load'))
 
-    const checkAccountsScript = await readFileAsync(path.join(__dirname, '../scripts/get_accounts_that_need_settlement.lua'), 'utf8')
+    const checkAccountsScript = await readFileAsync(path.join(__dirname, '../../redis-common/get_accounts_that_need_settlement.lua'), 'utf8')
     await loadScript(checkAccountsScript)
     const checkAccountsScriptHash = createHash('sha1').update(checkAccountsScript).digest('hex')
-    this.getAccountsThatNeedSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, checkAccountsScriptHash, KEY_ARGS))
+    this.getAccountsThatNeedSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, checkAccountsScriptHash, KEY_ARGS, 'XRP', XRP_SCALE))
 
-    const creditAccountForSettlementScript = await readFileAsync(path.join(__dirname, '../scripts/credit_account_for_settlement.lua'), 'utf8')
+    const creditAccountForSettlementScript = await readFileAsync(path.join(__dirname, '../../redis-common/credit_account_for_settlement.lua'), 'utf8')
     await loadScript(creditAccountForSettlementScript)
     const creditAccountForSettlementScriptHash = createHash('sha1').update(creditAccountForSettlementScript).digest('hex')
-    this.creditAccountForSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, creditAccountForSettlementScriptHash, KEY_ARGS))
+    this.creditAccountForSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, creditAccountForSettlementScriptHash, KEY_ARGS, 'XRP', XRP_SCALE))
 
-    const updateBalanceAfterSettlementScript = await readFileAsync(path.join(__dirname, '../scripts/update_balance_after_settlement.lua'), 'utf8')
+    const updateBalanceAfterSettlementScript = await readFileAsync(path.join(__dirname, '../../redis-common/update_balance_after_settlement.lua'), 'utf8')
     await loadScript(updateBalanceAfterSettlementScript)
     const updateBalanceAfterSettlementScriptHash = createHash('sha1').update(updateBalanceAfterSettlementScript).digest('hex')
-    this.updateBalanceAfterSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, updateBalanceAfterSettlementScriptHash, KEY_ARGS))
+    this.updateBalanceAfterSettlement = promisify(this.redisClient.evalsha.bind(this.redisClient, updateBalanceAfterSettlementScriptHash, KEY_ARGS, XRP_SCALE))
 
     debug('Loaded scripts')
   }

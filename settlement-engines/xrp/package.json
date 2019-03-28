@@ -11,7 +11,7 @@
         "./build/*.js",
         "./build/*.js.map",
         "./build/*.d.ts",
-        "./scripts/*.lua"
+        "../redis-common/*.lua"
     ],
     "scripts": {
         "build": "tsc",

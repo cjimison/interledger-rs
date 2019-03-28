@@ -17,7 +17,7 @@ RUN nexe \
     --output \
     /usr/local/bin/xrp-settlement-engine \
     --resource \
-    "./scripts/*.lua"
+    "../redis-common/*.lua"
 
 # Build run script
 WORKDIR /usr/src
