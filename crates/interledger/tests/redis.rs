@@ -191,9 +191,9 @@ fn btp_end_to_end() {
 
         create_accounts
             .and_then(spawn_connector)
-            .and_then(|_| delay(100))
+            .and_then(|_| delay(1000))
             .and_then(spawn_spsp_server)
-            .and_then(|_| delay(100))
+            .and_then(|_| delay(1000))
             .and_then(move |_| {
                 cli::send_spsp_payment_btp(
                     &format!("btp+ws://:token-two@localhost:{}", btp_port),
