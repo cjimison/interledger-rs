@@ -3,7 +3,7 @@ extern crate interledger;
 extern crate log;
 
 use env_logger;
-use futures::Future;
+use futures::{future::ok, Future};
 use interledger::cli;
 use net2;
 use redis;
@@ -112,25 +112,42 @@ fn delay(ms: u64) -> impl Future<Item = (), Error = ()> {
 }
 
 #[test]
-#[cfg(feature = "test-redis")]
 fn btp_end_to_end() {
-    let _ = env_logger::init();
+    let _ = env_logger::try_init();
     let redis_server = RedisServer::new();
     // let redis_port = 6379;
     let redis_port = redis_server.port;
     let redis_uri = format!("redis://127.0.0.1:{}", redis_port);
     let btp_port = get_open_port(Some(7768));
     let http_port = get_open_port(Some(7770));
-    let run = delay(200).and_then(move |_| {
+    let run = ok(()).and_then(move |_| {
         let redis_uri_clone = redis_uri.clone();
-        let create_accounts = delay(50).and_then(move |_| {
+        let create_accounts = cli::insert_account_redis(
+            &redis_uri_clone,
+            cli::AccountDetails {
+                ilp_address: Vec::from("example.one"),
+                asset_code: "XYZ".to_string(),
+                asset_scale: 9,
+                btp_incoming_authorization: Some("token-one".to_string()),
+                btp_uri: None,
+                http_endpoint: None,
+                http_incoming_authorization: None,
+                http_outgoing_authorization: None,
+                max_packet_amount: u64::max_value(),
+                is_admin: false,
+                xrp_address: None,
+                settle_threshold: None,
+                settle_to: None,
+            },
+        )
+        .and_then(move |_| {
             cli::insert_account_redis(
                 &redis_uri_clone,
                 cli::AccountDetails {
-                    ilp_address: Vec::from("example.one"),
+                    ilp_address: Vec::from("example.two"),
                     asset_code: "XYZ".to_string(),
                     asset_scale: 9,
-                    btp_incoming_authorization: Some("token-one".to_string()),
+                    btp_incoming_authorization: Some("token-two".to_string()),
                     btp_uri: None,
                     http_endpoint: None,
                     http_incoming_authorization: None,
@@ -142,30 +159,11 @@ fn btp_end_to_end() {
                     settle_to: None,
                 },
             )
-            .and_then(move |_| {
-                cli::insert_account_redis(
-                    &redis_uri_clone,
-                    cli::AccountDetails {
-                        ilp_address: Vec::from("example.two"),
-                        asset_code: "XYZ".to_string(),
-                        asset_scale: 9,
-                        btp_incoming_authorization: Some("token-two".to_string()),
-                        btp_uri: None,
-                        http_endpoint: None,
-                        http_incoming_authorization: None,
-                        http_outgoing_authorization: None,
-                        max_packet_amount: u64::max_value(),
-                        is_admin: false,
-                        xrp_address: None,
-                        settle_threshold: None,
-                        settle_to: None,
-                    },
-                )
-            })
         });
 
         let redis_uri_clone = redis_uri.clone();
         let spawn_connector = move |_| {
+            debug!("Spawning connector");
             // Note: this needs to be run AFTER the accounts are created because the
             // store does not currently subscribe to notifications of accounts being created
             // or the routing table being updated
@@ -179,8 +177,9 @@ fn btp_end_to_end() {
             Ok(())
         };
 
-        let spsp_server_port = 3000;
+        let spsp_server_port = get_open_port(Some(3000));
         let spawn_spsp_server = move |_| {
+            debug!("Spawning SPSP server");
             let spsp_server = cli::run_spsp_server_btp(
                 &format!("btp+ws://:token-one@localhost:{}", btp_port),
                 ([127, 0, 0, 1], spsp_server_port).into(),
@@ -202,6 +201,10 @@ fn btp_end_to_end() {
                     10000,
                     true,
                 )
+                .then(move |result| {
+                    let _ = redis_server;
+                    result
+                })
             })
     });
     let mut runtime = Runtime::new().unwrap();
