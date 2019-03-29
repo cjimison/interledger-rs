@@ -1,0 +1,56 @@
+{
+    "name": "eth-settlement-engine",
+    "version": "0.1.0",
+    "description": "Ethereum settlement engine for Interledger.rs",
+    "main": "./build/index.js",
+    "scripts": {
+        "build": "tsc",
+        "prepare": "tsc",
+        "start": "./build/cli.js",
+        "lint": "tslint --project ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/emschwartz/interledger-rs.git"
+    },
+    "files": [
+        "./build/*.js",
+        "./build/*.js.map",
+        "./build/*.d.ts",
+        "../redis-common/*.lua"
+    ],
+    "bin": {
+        "eth-settlement-engine": "./build/cli.js"
+    },
+    "keywords": [
+        "interledger",
+        "interledger.rs",
+        "settlement",
+        "engine",
+        "ethereum",
+        "eth"
+    ],
+    "author": "Evan Schwartz <evan@ripple.com>",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/emschwartz/interledger-rs/issues"
+    },
+    "homepage": "https://github.com/emschwartz/interledger-rs#readme",
+    "dependencies": {
+        "@types/bn.js": "^4.11.4",
+        "@types/node": "^11.12.0",
+        "@types/redis": "^2.8.12",
+        "@types/web3": "^1.0.18",
+        "@types/yargs": "^12.0.10",
+        "bn.js": "^4.11.8",
+        "debug": "^4.1.1",
+        "redis": "^2.8.0",
+        "web3": "^1.0.0-beta.50",
+        "yargs": "^13.2.2"
+    },
+    "devDependencies": {
+        "tslint": "^5.14.0",
+        "tslint-config-standard": "^8.0.1",
+        "typescript": "^3.3.4000"
+    }
+}
