@@ -70,9 +70,14 @@ impl_web! {
         fn post_rates(&self, body: Rates, authorization: String) -> impl Future<Item = Success, Error = Response<()>> {
             debug!("Setting exchange rates: {:?}", body);
             self.validate_admin(authorization)
+                .map_err(|_| {
+                    Response::builder().status(401).body(()).unwrap()
+                })
                 .and_then(move |store| {
                     store.set_rates(body.0)
-                        .and_then(|_| Ok(Success))
+                        .and_then(|_| {
+                            Ok(Success)
+                        })
                         .map_err(|err| {
                             error!("Error setting rates: {:?}", err);
                             Response::builder().status(500).body(()).unwrap()
