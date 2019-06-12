@@ -21,6 +21,6 @@ const DB_ID = 2
 //-----------------------------------------------------------------------------
 // Main Logic
 
-utils.setup(ILP_ADDRESS, undefined, CONFIG_PATH, HTTP_PORT, BTP_PORT, DB_ID, false)
+utils.setup(ILP_ADDRESS, undefined, CONFIG_PATH, HTTP_PORT, BTP_PORT, DB_ID, true)
     .catch( (err) => console.error(err) );
 

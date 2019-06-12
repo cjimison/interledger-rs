@@ -76,7 +76,8 @@ module.exports = {
                 secret_seed,
                 redis_connection,
                 btp_address,
-                http_address
+                http_address,
+                default_spsp_account: 0
             }, null, 4))
             console.log('Saved config to ', configPath)
         } catch (err) {

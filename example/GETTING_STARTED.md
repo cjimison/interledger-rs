@@ -156,15 +156,24 @@ What does this script do?
 
 * Creates all the needed accounts with the proper routing relation ship.
 
+
 ## Set the exchange rates
 
-```$> node account_setup.js```
+```$> node rates_setup.js```
 
 With our current routing flow model the exchange for `COIN_A` to `COIN_B` will happen on node 2.  As a node operator we would like to set the exchange rate here. 
 
 What does this script do?
 
 * On node 2 we will set the exchange rates of 1 `COIN_A` is equal to 2 `COIN_B's`
+
+## Restart connector nodes 2 and 3
+
+For terminal 2 and 3 we have a "bridge" account setup that uses BTP.  With the current interledger-rs any BTP account will only be active on the node start
+
+Why do you need to do this?
+
+* Right now when you create an account with a BTP connection it will only be activiated one boot of the node.
 
 ## Send a Payment
 
